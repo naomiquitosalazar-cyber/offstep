@@ -1,0 +1,22 @@
+---
+import { getCategorias } from '../lib/categorias';
+
+const categorias = await getCategorias();
+---
+
+<nav class="w-full border-b-2 border-black bg-[#F9C3B6] px-6 py-4">
+  <ul class="flex flex-wrap gap-2">
+    {
+      categorias.map((categoria) => (
+        <li>
+          <a
+            href={`/productos?categoria=${categoria.id_categoria}`}
+            class="block border-2 border-black bg-white px-5 py-2 text-sm font-bold uppercase tracking-wide text-black transition hover:bg-[#E30613] hover:text-white"
+          >
+            {categoria.nombre}
+          </a>
+        </li>
+      ))
+    }
+  </ul>
+</nav>

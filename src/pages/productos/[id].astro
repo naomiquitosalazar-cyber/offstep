@@ -1,0 +1,459 @@
+---
+import { getProductoById } from '../../lib/productos';
+import '../../styles/global.css';
+
+export async function getStaticPaths() {
+  const paths = [];
+
+  for (let id = 1; id <= 35; id++) {
+    paths.push({
+      params: { id: String(id) }
+    });
+  }
+
+  return paths;
+}
+
+const id = Number(Astro.params.id);
+const producto = await getProductoById(id);
+
+if (!producto) {
+  return new Response('Producto no encontrado', { status: 404 });
+}
+
+const nombresImagenes =
+  producto.id_producto <= 5
+    ? [
+        'runner-01.png',
+        'runner-02.png',
+        'runner-03.png',
+        'runner-04.png'
+      ]
+    : [
+        '01.png',
+        '02.png',
+        '03.png',
+        '04.png'
+      ];
+
+const imagenes = nombresImagenes.map(
+  (nombre) =>
+    `https://zqfqsrcwdkvdcyggggzp.supabase.co/storage/v1/object/public/PRODUCTOS/${producto.id_producto}/${nombre}`
+);
+---
+
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width" />
+  <title>{producto.nombre} — OFFSTEP</title>
+</head>
+
+<body class="m-0 bg-[#F9C3B6] text-[#102719]">
+
+  <!-- HEADER -->
+  <header class="bg-[#E30613] px-6 py-4">
+
+    <div class="mx-auto flex max-w-7xl items-center justify-between gap-8">
+
+      <!-- LOGO -->
+      <a
+        href="/"
+        class="text-4xl font-black tracking-[-0.08em] text-white"
+      >
+        OFFSTEP
+      </a>
+
+      <!-- BUSCADOR -->
+      <div class="hidden flex-1 max-w-2xl md:block">
+
+        <div class="flex items-center bg-white px-5 py-3">
+
+          <span class="mr-3 text-xl">
+            ⌕
+          </span>
+
+          <span class="font-semibold text-gray-500">
+            Buscar sneakers...
+          </span>
+
+        </div>
+
+      </div>
+
+      <!-- CUENTA / CARRITO -->
+      <div class="flex items-center gap-5 font-black text-white">
+
+        <span class="hidden md:block">
+          ♙ CUENTA
+        </span>
+
+       <a href="/carrito" class="hover:underline">
+  🛒 CARRITO
+  <span id="contador-carrito" class="ml-1">0</span>
+</a>
+
+      </div>
+
+    </div>
+
+  </header>
+
+
+  <!-- MENÚ -->
+  <div class="border-b-2 border-black bg-[#102719] px-6 py-3">
+
+    <div class="mx-auto max-w-7xl">
+
+      <details class="relative">
+
+        <summary
+          class="flex cursor-pointer list-none items-center gap-3 text-lg font-black text-white"
+        >
+
+          <span class="text-3xl leading-none">
+            ☰
+          </span>
+
+          <span>
+            CATEGORÍAS
+          </span>
+
+        </summary>
+
+      </details>
+
+    </div>
+
+  </div>
+
+
+  <!-- CONTENIDO -->
+  <main class="mx-auto max-w-7xl px-6 py-8 md:px-8">
+
+
+    <!-- BREADCRUMB -->
+    <nav class="mb-8 text-sm font-bold">
+
+      <a
+        href="/"
+        class="underline underline-offset-4 hover:text-[#E30613]"
+      >
+        INICIO
+      </a>
+
+      <span class="mx-2 text-[#E30613]">
+        /
+      </span>
+
+      <a
+        href={`/productos?categoria=${producto.id_categoria}`}
+        class="underline underline-offset-4 hover:text-[#E30613]"
+      >
+        PRODUCTOS
+      </a>
+
+      <span class="mx-2 text-[#E30613]">
+        /
+      </span>
+
+      <span>
+        {producto.nombre}
+      </span>
+
+    </nav>
+
+
+    <!-- PRODUCTO -->
+    <section class="grid gap-10 lg:grid-cols-[1.5fr_1fr]">
+
+
+      <!-- ================= GALERÍA ================= -->
+
+      <div>
+
+        <!-- IMAGEN PRINCIPAL -->
+        <div
+          class="flex aspect-square items-center justify-center bg-white p-8"
+        >
+
+          <img
+            id="imagen-principal"
+            src={imagenes[0]}
+            alt={producto.nombre}
+            class="h-full w-full object-contain"
+          />
+
+        </div>
+
+
+        <!-- MINIATURAS -->
+        <div class="mt-4 grid grid-cols-4 gap-3">
+
+          {imagenes.map((imagen, index) => (
+  <button
+    type="button"
+    class="miniatura aspect-square border-2 border-transparent bg-white p-3 transition hover:border-[#E30613]"
+    data-imagen={imagen}
+  >
+    <img
+      src={imagen}
+      alt={`${producto.nombre} imagen ${index + 1}`}
+      class="h-full w-full object-contain"
+    />
+  </button>
+))}
+
+        </div>
+
+      </div>
+
+
+      <!-- ================= INFORMACIÓN ================= -->
+
+      <div class="flex flex-col justify-center">
+
+
+        <!-- MARCA -->
+        <p
+          class="text-sm font-black tracking-[0.25em] text-[#E30613]"
+        >
+          OFFSTEP
+        </p>
+
+
+        <!-- NOMBRE -->
+        <h1
+          class="mt-3 text-4xl font-black uppercase leading-none tracking-tight md:text-5xl"
+        >
+          {producto.nombre}
+        </h1>
+
+
+        <!-- REFERENCIA -->
+        <p
+          class="mt-3 font-bold text-[#102719]/60"
+        >
+          {producto.referencia}
+        </p>
+
+
+        <!-- PRECIO -->
+        <p class="mt-6 text-3xl font-black">
+          {producto.precio} €
+        </p>
+
+
+        <!-- COLOR -->
+        <div class="mt-8 border-t-2 border-[#102719] pt-6">
+
+          <p class="font-black uppercase">
+            Color
+          </p>
+
+          <p class="mt-2 font-semibold">
+            Según modelo
+          </p>
+
+        </div>
+
+
+        
+<!-- TALLAS -->
+<div class="mt-8">
+  <div class="flex items-center justify-between">
+    <p class="font-black uppercase">
+      Selecciona una talla
+    </p>
+
+    <a href="#" class="font-bold underline">
+      Guía de tallas
+    </a>
+  </div>
+
+  <div id="tallas" class="mt-4 grid grid-cols-4 gap-2">
+    { [36, 37, 38, 39, 40, 41, 42, 43].map((talla) => (
+      <button
+        type="button"
+        data-talla={talla}
+        class="border-2 border-[#102719] bg-white py-3 font-bold hover:bg-[#102719] hover:text-white"
+      >
+        {talla}
+      </button>
+    )) }
+  </div>
+</div>
+
+        <!-- STOCK -->
+        <div class="mt-6 font-bold">
+
+          {producto.stock > 0 ? (
+            <span>
+              ✓ EN STOCK — {producto.stock} disponibles
+            </span>
+          ) : (
+            <span class="text-[#E30613]">
+              ✕ AGOTADO
+            </span>
+          )}
+
+        </div>
+
+
+        <!-- CARRITO -->
+        <button
+  id="btn-carrito"
+  type="button"
+  data-id={producto.id_producto}
+  data-nombre={producto.nombre}
+  data-precio={producto.precio}
+  data-imagen={imagenes[0]}
+  class="mt-6 w-full bg-[#E30613] px-6 py-5 text-lg font-black text-white transition hover:bg-[#102719]"
+>
+  AÑADIR AL CARRITO
+</button>
+
+
+        <!-- VOLVER -->
+        <div class="mt-4 grid grid-cols-2 gap-3">
+
+          <a
+            href={`/productos?categoria=${producto.id_categoria}`}
+            class="border-2 border-[#102719] px-4 py-3 text-center font-black transition hover:bg-[#102719] hover:text-white"
+          >
+            ← PRODUCTOS
+          </a>
+
+          <a
+            href="/"
+            class="border-2 border-[#102719] px-4 py-3 text-center font-black transition hover:bg-[#102719] hover:text-white"
+          >
+            INICIO
+          </a>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <!-- CAMBIAR IMAGEN -->
+<script>
+  document.addEventListener('click', (event) => {
+    const elemento = event.target as HTMLElement;
+
+    const miniatura = elemento.closest(
+      '.miniatura'
+    ) as HTMLButtonElement | null;
+
+    if (!miniatura) return;
+
+    const imagenPrincipal = document.getElementById(
+      'imagen-principal'
+    ) as HTMLImageElement | null;
+
+    const nuevaImagen = miniatura.dataset.imagen;
+
+    if (!imagenPrincipal || !nuevaImagen) return;
+
+    imagenPrincipal.src = nuevaImagen;
+
+    document.querySelectorAll('.miniatura').forEach((item) => {
+      item.classList.remove('border-[#E30613]');
+      item.classList.add('border-transparent');
+    });
+
+    miniatura.classList.remove('border-transparent');
+    miniatura.classList.add('border-[#E30613]');
+  });
+</script>
+
+<script>
+  const botonCarrito = document.getElementById(
+    'btn-carrito'
+  ) as HTMLButtonElement | null;
+
+  botonCarrito?.addEventListener('click', () => {
+    const id = Number(botonCarrito.dataset.id);
+    const nombre = botonCarrito.dataset.nombre || '';
+    const precio = Number(botonCarrito.dataset.precio);
+    const imagen = botonCarrito.dataset.imagen || '';
+
+    const carritoGuardado = localStorage.getItem('carrito');
+
+    const carrito = carritoGuardado
+      ? JSON.parse(carritoGuardado)
+      : [];
+
+    const productoExistente = carrito.find(
+      (producto: { id: number }) => producto.id === id
+    );
+
+    if (productoExistente) {
+      productoExistente.cantidad++;
+    } else {
+      carrito.push({
+        id,
+        nombre,
+        precio,
+        imagen,
+        cantidad: 1
+      });
+    }
+
+    localStorage.setItem(
+      'carrito',
+      JSON.stringify(carrito)
+    );
+
+   window.dispatchEvent(
+  new Event('carritoActualizado')
+);
+
+    botonCarrito.textContent = '✓ AÑADIDO AL CARRITO';
+
+    setTimeout(() => {
+      botonCarrito.textContent = 'AÑADIR AL CARRITO';
+    }, 1500);
+  });
+</script>
+
+<script>
+  function actualizarContadorCarrito() {
+    const carrito = JSON.parse(
+      localStorage.getItem('carrito') || '[]'
+    );
+
+    const cantidad = carrito.reduce(
+  (total: number, producto: { cantidad: number }) =>
+    total + producto.cantidad,
+  0
+);
+
+    const contador =
+      document.getElementById('contador-carrito');
+
+    if (contador) {
+      contador.textContent = String(cantidad);
+    }
+  }
+
+  window.addEventListener(
+    'carritoActualizado',
+    () => {
+      actualizarContadorCarrito();
+    }
+  );
+
+  actualizarContadorCarrito();
+</script>
+
+
+
+</body>
+
+</html>

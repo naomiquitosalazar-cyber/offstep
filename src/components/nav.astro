@@ -1,0 +1,71 @@
+
+---
+import '../styles/global.css';
+---
+
+<header class="bg-[#E30613] px-6 py-6">
+  <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4">
+    <a href="/" class="text-3xl font-black tracking-tight text-white">
+      OFFSTEP
+    </a>
+
+    <nav class="flex flex-wrap items-center gap-5 font-bold text-white">
+      <a href="/productos" class="hover:underline">SNEAKERS</a>
+      <a href="/carrito" class="hover:underline">CARRITO</a>
+      <a id="enlace-cuenta" href="/cuenta" class="hover:underline">
+        MI CUENTA
+      </a>
+      <a
+        id="enlace-perfil"
+        href="/perfil"
+        class="hidden hover:underline"
+      >
+        MI PERFIL
+      </a>
+    </nav>
+  </div>
+
+  <p
+    id="usuario-activo"
+    class="mx-auto mt-3 hidden max-w-6xl text-sm font-semibold text-white"
+  ></p>
+</header>
+
+<script>
+  import { supabase } from '../lib/supabase';
+
+  const enlaceCuenta = document.querySelector('#enlace-cuenta');
+  const enlacePerfil = document.querySelector('#enlace-perfil');
+  const usuarioActivo = document.querySelector('#usuario-activo');
+
+  async function actualizarNavegacion() {
+    const { data } = await supabase.auth.getSession();
+    const usuario = data.session?.user;
+
+    if (!usuario) {
+      enlacePerfil?.classList.add('hidden');
+      enlaceCuenta?.classList.remove('hidden');
+      usuarioActivo?.classList.add('hidden');
+      return;
+    }
+
+    const nombre = usuario.user_metadata?.nombre
+      || usuario.user_metadata?.full_name
+      || usuario.email
+      || 'Usuario';
+
+    if (enlacePerfil) enlacePerfil.classList.remove('hidden');
+    if (enlaceCuenta) enlaceCuenta.classList.add('hidden');
+
+    if (usuarioActivo) {
+      usuarioActivo.textContent = `Hola, ${nombre}`;
+      usuarioActivo.classList.remove('hidden');
+    }
+  }
+
+  actualizarNavegacion();
+
+  supabase.auth.onAuthStateChange(() => {
+    actualizarNavegacion();
+  });
+</script>

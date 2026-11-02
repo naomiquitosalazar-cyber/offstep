@@ -1,0 +1,122 @@
+
+---
+import '../styles/global.css';
+import { stripe } from '../lib/stripe';
+
+export const prerender = false;
+
+const sessionId = Astro.url.searchParams.get('session_id');
+
+let estado: 'pagado' | 'pendiente' | 'error' = 'error';
+
+if (sessionId) {
+  try {
+    const sesion = await stripe.checkout.sessions.retrieve(sessionId);
+
+    estado = sesion.payment_status === 'paid'
+      ? 'pagado'
+      : 'pendiente';
+  } catch {
+    estado = 'error';
+  }
+}
+---
+
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width" />
+  <title>Compra completada — OFFSTEP</title>
+</head>
+
+<body class="m-0 bg-[#F9C3B6] text-[#102719]">
+
+  <header class="bg-[#E30613] px-6 py-5">
+    <div class="mx-auto max-w-7xl">
+      <a href="/" class="text-4xl font-black tracking-[-0.08em] text-white">
+        OFFSTEP
+      </a>
+    </div>
+  </header>
+
+  <main class="mx-auto flex min-h-[75vh] max-w-3xl items-center justify-center px-6 py-16">
+
+    <section class="w-full border-2 border-[#102719] bg-white p-8 text-center md:p-12">
+
+      {estado === 'pagado' ? (
+        <>
+          <p class="text-6xl">✓</p>
+
+          <p class="mt-6 text-sm font-black tracking-[0.3em] text-[#E30613]">
+            OFFSTEP · ORDER CONFIRMED
+          </p>
+
+          <h1 class="mt-4 text-4xl font-black uppercase md:text-5xl">
+            ¡GRACIAS POR TU COMPRA!
+          </h1>
+
+          <p class="mt-5 text-lg font-semibold">
+            Tu pago se ha realizado correctamente.
+          </p>
+
+          <p class="mt-2 text-[#102719]/70">
+            Gracias por confiar en OFFSTEP. Esperamos que disfrutes tus sneakers.
+          </p>
+
+          <a
+            href="/productos?categoria=1"
+            class="mt-8 inline-block bg-[#E30613] px-8 py-4 font-black text-white transition hover:bg-[#102719]"
+          >
+            SEGUIR COMPRANDO
+          </a>
+        </>
+      ) : estado === 'pendiente' ? (
+        <>
+          <p class="text-6xl">◷</p>
+
+          <h1 class="mt-6 text-4xl font-black uppercase">
+            PAGO PENDIENTE
+          </h1>
+
+          <p class="mt-4 font-semibold">
+            Stripe todavía no ha confirmado el pago.
+          </p>
+
+          <a
+            href="/"
+            class="mt-8 inline-block bg-[#102719] px-8 py-4 font-black text-white"
+          >
+            VOLVER A OFFSTEP
+          </a>
+        </>
+      ) : (
+        <>
+          <p class="text-6xl">!</p>
+
+          <h1 class="mt-6 text-4xl font-black uppercase">
+            NO HEMOS PODIDO VERIFICAR EL PAGO
+          </h1>
+
+          <p class="mt-4 font-semibold">
+            No podemos confirmar el estado de tu compra. Comprueba tu pago antes de volver a intentarlo.
+          </p>
+
+          <a
+            href="/carrito"
+            class="mt-8 inline-block bg-[#E30613] px-8 py-4 font-black text-white"
+          >
+            VOLVER AL CARRITO
+          </a>
+        </>
+      )}
+
+    </section>
+
+  </main>
+
+  <footer class="border-t border-[#102719] py-6 text-center font-bold">
+    OFFSTEP © 2026
+  </footer>
+
+</body>
+</html>

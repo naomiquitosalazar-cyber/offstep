@@ -1,0 +1,244 @@
+---
+import '../styles/global.css';
+import { supabase } from '../lib/supabase';
+---
+
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>OFFSTEP — Cuenta</title>
+  </head>
+
+  <body class="m-0 bg-[#F9C3B6] text-[#102719]">
+
+    <!-- HEADER -->
+    <header class="bg-[#E30613] px-6 py-4">
+      <div class="mx-auto flex max-w-7xl items-center justify-between gap-8">
+
+        <a
+          href="/"
+          class="text-4xl font-black tracking-[-0.08em] text-white"
+        >
+          OFFSTEP
+        </a>
+
+        <div class="flex items-center gap-5 font-black text-white">
+          <a href="/cuenta" class="hover:underline">
+            ♙ CUENTA
+          </a>
+
+          <a href="/carrito" class="hover:underline">
+            🛒 CARRITO
+            <span id="contador-carrito" class="ml-1">0</span>
+          </a>
+        </div>
+
+      </div>
+    </header>
+
+
+    <!-- LOGIN -->
+    <main class="mx-auto flex max-w-7xl justify-center px-6 py-16">
+
+      <section class="w-full max-w-xl border-2 border-[#102719] bg-white p-8 md:p-12">
+
+        <p class="text-sm font-black tracking-[0.3em] text-[#E30613]">
+          OFFSTEP · ACCOUNT
+        </p>
+
+        <h1 class="mt-3 text-5xl font-black tracking-[-0.04em]">
+          INICIAR SESIÓN
+        </h1>
+
+        <p class="mt-4 font-semibold">
+          Accede a tu cuenta OFFSTEP.
+        </p>
+
+
+        <form id="formulario-login" class="mt-10">
+
+          <!-- EMAIL -->
+          <div>
+            <label
+              for="email"
+              class="block text-sm font-black uppercase"
+            >
+              Correo electrónico
+            </label>
+
+            <input
+              id="email"
+              type="email"
+              placeholder="tu@email.com"
+              class="mt-2 w-full border-2 border-[#102719] px-4 py-4 outline-none focus:border-[#E30613]"
+            />
+          </div>
+
+
+          <!-- CONTRASEÑA -->
+          <div class="mt-6">
+            <label
+              for="password"
+              class="block text-sm font-black uppercase"
+            >
+              Contraseña
+            </label>
+
+            <input
+              id="password"
+              type="password"
+              placeholder="Tu contraseña"
+              class="mt-2 w-full border-2 border-[#102719] px-4 py-4 outline-none focus:border-[#E30613]"
+            />
+          </div>
+
+
+          <!-- BOTÓN -->
+          <button
+            type="submit"
+            class="mt-8 w-full bg-[#E30613] px-6 py-4 font-black text-white transition hover:bg-[#102719]"
+          >
+            INICIAR SESIÓN
+          </button>
+
+        </form>
+
+        <div class="mt-6">
+  <button
+    id="login-google"
+    type="button"
+    class="w-full border-2 border-[#102719] bg-white px-6 py-4 font-black text-[#102719] transition hover:bg-[#102719] hover:text-white"
+  >
+    CONTINUAR CON GOOGLE
+  </button>
+</div>
+
+
+        <div class="mt-8 border-t-2 border-[#102719] pt-6 text-center">
+          <p class="font-semibold">
+            ¿Todavía no tienes una cuenta?
+          </p>
+
+          <a href="/registro">
+  CREAR CUENTA
+</a>
+
+        </div>
+
+      </section>
+
+    </main>
+
+ 
+<script>
+  import { supabase } from '../lib/supabase';
+
+ const botonGoogle = document.getElementById('login-google');
+const formulario = document.getElementById('formulario-login');
+const seccionLogin = document.querySelector('main section');
+
+formulario?.addEventListener('submit', async (evento) => {
+  evento.preventDefault();
+
+const emailInput = document.getElementById('email') as HTMLInputElement | null;
+const passwordInput = document.getElementById('password') as HTMLInputElement | null;
+
+if (!emailInput || !passwordInput) return;
+
+const email = emailInput.value.trim();
+const password = passwordInput.value;
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) {
+    alert('Error al iniciar sesión: ' + error.message);
+    return;
+  }
+
+  if (data.session) {
+    window.location.href = '/perfil';
+  }
+});
+
+
+
+  const mostrarCuenta = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+
+    let estadoCuenta = document.getElementById('estado-cuenta');
+
+    if (!estadoCuenta) {
+      estadoCuenta = document.createElement('div');
+      estadoCuenta.id = 'estado-cuenta';
+      estadoCuenta.className = 'mt-6 text-center font-semibold';
+      formulario?.insertAdjacentElement('afterend', estadoCuenta);
+    }
+
+    if (session?.user) {
+
+        seccionLogin?.querySelector('h1')?.classList.add('hidden');
+seccionLogin?.querySelector('p')?.classList.add('hidden');
+formulario?.classList.add('hidden');
+botonGoogle?.classList.add('hidden');
+
+
+      estadoCuenta.innerHTML = `
+        <p>Has iniciado sesión correctamente.</p>
+        <p class="mt-2">${session.user.email ?? ''}</p>
+        <button id="cerrar-sesion"
+          class="mt-4 w-full bg-[#102719] px-6 py-4 font-black text-white">
+          CERRAR SESIÓN
+        </button>
+      `;
+
+      document.getElementById('cerrar-sesion')?.addEventListener('click', async () => {
+        const { error } = await supabase.auth.signOut();
+
+        if (error) {
+          alert('Error al cerrar sesión: ' + error.message);
+          return;
+        }
+
+        window.location.reload();
+      });
+    } else {
+
+        seccionLogin?.querySelector('h1')?.classList.remove('hidden');
+seccionLogin?.querySelector('p')?.classList.remove('hidden');
+formulario?.classList.remove('hidden');
+botonGoogle?.classList.remove('hidden');
+      estadoCuenta.innerHTML = '<p>No has iniciado sesión.</p>';
+    }
+  };
+
+  botonGoogle?.addEventListener('click', async () => {
+
+    const formulario = document.getElementById('formulario-login');
+const seccionLogin = document.querySelector('main section');
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin + '/cuenta',
+      },
+    });
+
+    if (error) {
+      alert('Error al iniciar sesión con Google: ' + error.message);
+    }
+  });
+
+  mostrarCuenta();
+
+  supabase.auth.onAuthStateChange(() => {
+    mostrarCuenta();
+  });
+</script>
+
+
+  </body>
+</html>

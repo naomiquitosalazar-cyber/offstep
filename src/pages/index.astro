@@ -1,0 +1,143 @@
+---
+import MenuCategorias from '../components/MenuCategorias.astro';
+import '../styles/global.css';
+
+const campana = 'NEW DROP · 2026';
+---
+
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>OFFSTEP — Sneakers</title>
+  </head>
+
+  <body class="m-0 bg-[#F9C3B6] text-[#102719]">
+
+    <!-- HEADER -->
+    <header class="bg-[#E30613] px-6 py-4">
+      <div class="mx-auto flex max-w-7xl items-center justify-between gap-8">
+
+        <a href="/" class="text-4xl font-black tracking-tighter text-white">
+          OFFSTEP
+        </a>
+
+        <div class="hidden flex-1 max-w-2xl md:block">
+          <div class="flex items-center bg-white px-4 py-3">
+            <span class="mr-3 text-xl">⌕</span>
+            <span class="text-gray-500">Buscar sneakers...</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-5 font-bold text-white">
+
+  <a href="/cuenta" class="hover:underline">
+    ♙ CUENTA
+  </a>
+
+  <a href="/carrito" class="hover:underline">
+    🛒 CARRITO
+    <span id="contador-carrito" class="ml-1">0</span>
+  </a>
+
+</div>
+
+      </div>
+    </header>
+	
+<!-- MENÚ HAMBURGUESA -->
+<div class="border-b-2 border-black bg-[#102719] px-6 py-3">
+  <div class="mx-auto max-w-7xl">
+    <details class="relative">
+      <summary class="flex cursor-pointer list-none items-center gap-3 text-lg font-black text-white">
+        <span class="text-3xl leading-none">☰</span>
+        <span>CATEGORÍAS</span>
+      </summary>
+
+      <div class="absolute left-0 top-full z-50 mt-3 w-72 border-2 border-black bg-[#F9C3B6] p-4 shadow-lg">
+        <MenuCategorias />
+      </div>
+    </details>
+  </div>
+</div>
+    <!-- HERO -->
+    <main>
+      <section class="mx-auto grid min-h-[calc(100vh-145px)] max-w-7xl items-center gap-10 px-8 py-16 md:grid-cols-2">
+
+        <div>
+          <p id="campana" class="mb-6 text-sm font-black tracking-[0.25em]">
+  {campana}
+</p>
+
+          <h1 class="text-6xl font-black leading-[0.85] tracking-[-0.04em] md:text-8xl">
+            DON'T<br />
+            FOLLOW.
+            <span class="block text-[#E30613]">
+              STEP<br />
+              DIFFERENT.
+            </span>
+          </h1>
+
+          <p class="mt-8 max-w-lg text-lg">
+            Sneakers para quienes no siguen las reglas.
+            Encuentra tu próximo par y pisa diferente.
+          </p>
+
+          <a
+            href="/productos?categoria=1"
+            class="mt-8 inline-block bg-[#E30613] px-7 py-4 text-sm font-black text-white transition hover:bg-black"
+          >
+            DESCUBRIR SNEAKERS
+          </a>
+        </div>
+
+        <div class="flex justify-center">
+          <div class="flex h-80 w-80 items-center justify-center rounded-full bg-[#E30613] md:h-[500px] md:w-[500px]">
+            <div class="text-center text-6xl font-black leading-none tracking-tighter text-white md:text-8xl">
+              OFF<br />
+              STEP
+            </div>
+          </div>
+        </div>
+
+      </section>
+    </main>
+
+<script define:vars={{ campana }}>
+  // Mostrar la campaña recibida desde Astro
+  const elementoCampana = document.getElementById('campana');
+
+  if (elementoCampana) {
+    elementoCampana.textContent = campana;
+  }
+
+  // Actualizar el contador del carrito
+  function actualizarContadorCarrito() {
+    const carritoGuardado = localStorage.getItem('carrito');
+
+    const carrito = carritoGuardado
+      ? JSON.parse(carritoGuardado)
+      : [];
+
+    const cantidad = carrito.reduce(
+      (total, producto) => total + producto.cantidad,
+      0
+    );
+
+    const contador = document.getElementById('contador-carrito');
+
+    if (contador) {
+      contador.textContent = String(cantidad);
+    }
+  }
+
+  actualizarContadorCarrito();
+
+  window.addEventListener(
+    'carritoActualizado',
+    actualizarContadorCarrito
+  );
+</script>
+
+  </body>
+</html>

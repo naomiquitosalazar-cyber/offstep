@@ -1,0 +1,243 @@
+
+---
+import '../styles/global.css';
+import '../components/nav.astro';
+---
+
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mi perfil | OFFSTEP</title>
+  </head>
+
+  <body class="min-h-screen bg-[#F9C3B6] text-[#102719]">
+   
+
+    <main class="mx-auto max-w-2xl px-6 py-16">
+      <div class="mb-10">
+        <p class="mb-3 font-bold uppercase tracking-widest text-[#E30613]">
+          OFFSTEP ACCOUNT
+        </p>
+
+        <h1 class="text-5xl font-black uppercase">
+          MI PERFIL<span class="text-[#E30613]">.</span>
+        </h1>
+
+        <p class="mt-4 text-lg">
+          Gestiona tus datos personales.
+        </p>
+      </div>
+
+      <section class="border-2 border-[#102719] bg-white p-6 sm:p-8">
+        <h2 class="mb-2 text-2xl font-black uppercase">
+          Datos personales
+        </h2>
+
+        <p
+          id="email-usuario"
+          class="mb-8 break-all text-sm font-semibold"
+        ></p>
+
+        <form id="form-perfil" class="flex flex-col gap-6">
+          <div>
+            <label for="nombre" class="mb-2 block font-bold uppercase">
+              Nombre completo
+            </label>
+            <input
+              id="nombre"
+              name="nombre"
+              type="text"
+              autocomplete="name"
+              required
+              class="w-full border-2 border-[#102719] px-4 py-3 outline-none focus:border-[#E30613]"
+            />
+          </div>
+
+          <div>
+            <label for="telefono" class="mb-2 block font-bold uppercase">
+              Teléfono
+            </label>
+            <input
+              id="telefono"
+              name="telefono"
+              type="tel"
+              autocomplete="tel"
+              class="w-full border-2 border-[#102719] px-4 py-3 outline-none focus:border-[#E30613]"
+            />
+          </div>
+
+          <div>
+            <label for="direccion" class="mb-2 block font-bold uppercase">
+              Dirección
+            </label>
+            <textarea
+              id="direccion"
+              name="direccion"
+              rows="3"
+              autocomplete="street-address"
+              class="w-full resize-none border-2 border-[#102719] px-4 py-3 outline-none focus:border-[#E30613]"
+            ></textarea>
+          </div>
+
+          <p id="mensaje-perfil" class="text-sm font-bold" aria-live="polite"></p>
+
+          <button
+            id="guardar"
+            type="submit"
+            class="w-full bg-[#E30613] px-6 py-4 font-black uppercase text-white transition hover:bg-[#102719] disabled:opacity-60"
+          >
+            GUARDAR PERFIL →
+          </button>
+
+          <button
+            id="cerrar-sesion"
+            type="button"
+            class="w-full bg-[#102719] px-6 py-4 font-black uppercase text-white transition hover:bg-[#E30613]"
+          >
+            CERRAR SESIÓN
+          </button>
+        </form>
+      </section>
+
+      <a
+        href="/productos"
+        class="mt-8 inline-block font-bold uppercase hover:text-[#E30613]"
+      >
+        ← Volver a sneakers
+      </a>
+    </main>
+
+    <footer class="border-t-2 border-[#102719] px-6 py-6 text-center">
+      <p class="font-black">OFFSTEP © 2026</p>
+    </footer>
+
+    <script>
+      import { supabase } from '../lib/supabase';
+
+      const formulario = document.querySelector('#form-perfil') as HTMLFormElement;
+      const campoNombre = document.querySelector('#nombre') as HTMLInputElement;
+      const campoTelefono = document.querySelector('#telefono') as HTMLInputElement;
+      const campoDireccion = document.querySelector('#direccion') as HTMLTextAreaElement;
+      const emailUsuario = document.querySelector('#email-usuario') as HTMLParagraphElement;
+      const mensaje = document.querySelector('#mensaje-perfil') as HTMLParagraphElement;
+      const botonGuardar = document.querySelector('#guardar') as HTMLButtonElement;
+      const botonCerrar = document.querySelector('#cerrar-sesion') as HTMLButtonElement;
+
+      function mostrarMensaje(texto: string, correcto = false) {
+        mensaje.textContent = texto;
+        mensaje.className = correcto
+          ? 'text-sm font-bold text-green-700'
+          : 'text-sm font-bold text-[#E30613]';
+      }
+
+      async function cargarPerfil() {
+        const { data, error } = await supabase.auth.getSession();
+        const sesion = data.session;
+
+        if (error || !sesion?.user) {
+          window.location.replace('/cuenta');
+          return;
+        }
+
+        emailUsuario.textContent = sesion.user.email ?? '';
+        campoNombre.value = String(sesion.user.user_metadata?.nombre ?? '');
+
+        try {
+          const respuesta = await fetch('/api/perfil', {
+            headers: {
+              Authorization: `Bearer ${sesion.access_token}`
+            }
+          });
+
+          if (respuesta.status === 401) {
+            mostrarMensaje('Tu sesión ha caducado. Vuelve a iniciar sesión.');
+            return;
+          }
+
+          if (!respuesta.ok) {
+            mostrarMensaje('No se pudieron cargar los datos guardados.');
+            return;
+          }
+
+          const datos = await respuesta.json();
+
+          if (datos.cliente) {
+            campoNombre.value = datos.cliente.nombre ?? campoNombre.value;
+            campoTelefono.value = datos.cliente.telefono ?? '';
+            campoDireccion.value = datos.cliente.direccion ?? '';
+          }
+        } catch (error) {
+          console.error('Error al cargar el perfil:', error);
+          mostrarMensaje('No se pudieron cargar los datos del servidor.');
+        }
+      }
+
+      formulario.addEventListener('submit', async (evento) => {
+        evento.preventDefault();
+
+        const { data, error } = await supabase.auth.getSession();
+        const sesion = data.session;
+
+        if (error || !sesion?.user) {
+          window.location.replace('/cuenta');
+          return;
+        }
+
+        botonGuardar.disabled = true;
+        botonGuardar.textContent = 'GUARDANDO...';
+
+        try {
+          const respuesta = await fetch('/api/crear', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${sesion.access_token}`
+            },
+            body: JSON.stringify({
+              nombre: campoNombre.value.trim(),
+              telefono: campoTelefono.value.trim(),
+              direccion: campoDireccion.value.trim()
+            })
+          });
+
+          if (!respuesta.ok) {
+            const detalle = await respuesta.text();
+            mostrarMensaje(detalle || 'No se pudieron guardar los datos.');
+            return;
+          }
+
+          const { error: errorNombre } = await supabase.auth.updateUser({
+            data: { nombre: campoNombre.value.trim() }
+          });
+
+          if (errorNombre) {
+            mostrarMensaje('Los datos se guardaron, pero no se actualizó el nombre de la cuenta.');
+            return;
+          }
+
+          mostrarMensaje('¡Perfil guardado correctamente!', true);
+        } catch (error) {
+          console.error('Error al guardar el perfil:', error);
+          mostrarMensaje('No se pudo conectar con el servidor.');
+        } finally {
+          botonGuardar.disabled = false;
+          botonGuardar.textContent = 'GUARDAR PERFIL →';
+        }
+      });
+
+      botonCerrar.addEventListener('click', async () => {
+        const { error } = await supabase.auth.signOut();
+
+        if (error) {
+          mostrarMensaje('No se pudo cerrar la sesión.');
+          return;
+        }
+
+        window.location.replace('/cuenta');
+      });
+
+      cargarPerfil();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,675 @@
+---
+import '../styles/global.css';
+---
+
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width" />
+  <title>OFFSTEP — Carrito</title>
+</head>
+
+<body class="m-0 bg-[#F9C3B6] text-[#102719]">
+
+  <!-- HEADER -->
+  <header class="bg-[#E30613] px-6 py-4">
+
+    <div class="mx-auto flex max-w-7xl items-center justify-between gap-8">
+
+      <a
+        href="/"
+        class="text-4xl font-black tracking-[-0.08em] text-white"
+      >
+        OFFSTEP
+      </a>
+
+      <div class="hidden flex-1 max-w-2xl md:block">
+
+        <div class="flex items-center bg-[#F9C3B6] px-5 py-3">
+
+          <span class="mr-3 text-xl">
+            ⌕
+          </span>
+
+          <span class="font-semibold text-gray-500">
+            Buscar sneakers...
+          </span>
+
+        </div>
+
+      </div>
+
+      <div class="flex items-center gap-5 font-black text-white">
+
+        <span class="hidden md:block">
+          ♙ CUENTA
+        </span>
+
+        <span>
+          🛒 CARRITO
+          <span id="contador-carrito" class="ml-1">
+            0
+          </span>
+        </span>
+
+      </div>
+
+    </div>
+
+  </header>
+
+
+  <!-- CONTENIDO -->
+
+  <main class="mx-auto max-w-7xl px-6 py-12">
+
+    <p class="text-sm font-black tracking-[0.3em] text-[#E30613]">
+      OFFSTEP · SHOPPING BAG
+    </p>
+
+    <h1 class="mt-3 text-5xl font-black tracking-[-0.04em]">
+      TU CARRITO
+    </h1>
+
+
+    <!-- CARRITO -->
+
+    <section
+      id="carrito"
+      class="mt-10 grid gap-10 lg:grid-cols-[1fr_380px]"
+    >
+
+      <!-- LISTA DE PRODUCTOS -->
+
+      <div id="lista-productos"></div>
+
+
+      <!-- RESUMEN -->
+
+      <aside class="h-fit border-2 border-[#102719] bg-[#F9C3B6] p-6">
+
+        <h2 class="text-2xl font-black">
+          RESUMEN
+        </h2>
+
+        <div class="mt-6 border-t-2 border-[#102719] pt-5">
+
+          <div class="flex justify-between font-bold">
+
+            <span>
+              Subtotal
+            </span>
+
+            <span id="subtotal">
+              0,00 €
+            </span>
+
+          </div>
+
+
+          <div class="mt-3 flex justify-between font-bold">
+
+            <span>
+              Envío
+            </span>
+
+            <span>
+              Gratis
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <div class="mt-6 border-t-2 border-[#102719] pt-5">
+
+          <div class="flex justify-between text-xl font-black">
+
+            <span>
+              TOTAL
+            </span>
+
+            <span id="total">
+              0,00 €
+            </span>
+
+          </div>
+
+        </div>
+
+
+       <button
+  id="btn-finalizar-compra"
+  type="button"
+  class="mt-6 w-full bg-[#E30613] px-6 py-4 font-black text-white transition hover:bg-[#102719]"
+>
+  FINALIZAR COMPRA
+</button>
+
+      </aside>
+
+    </section>
+
+
+    <!-- CARRITO VACÍO -->
+
+    <section
+      id="carrito-vacio"
+      class="mt-10 hidden border-2 border-[#102719] bg-[#F9C3B6] p-12 text-center"
+    >
+
+      <p class="text-5xl">
+        🛒
+      </p>
+
+      <h2 class="mt-5 text-3xl font-black">
+        TU CARRITO ESTÁ VACÍO
+      </h2>
+
+      <p class="mt-3 font-semibold">
+        Todavía no has añadido ningún sneaker.
+      </p>
+
+      <a
+        href="/productos?categoria=1"
+        class="mt-7 inline-block bg-[#E30613] px-7 py-4 font-black text-white transition hover:bg-[#102719]"
+      >
+        VER SNEAKERS
+      </a>
+
+    </section>
+
+  </main>
+
+
+  <!-- JAVASCRIPT DEL CARRITO -->
+
+  <script>
+
+    interface ProductoCarrito {
+      id: number;
+      nombre: string;
+      precio: number;
+      imagen: string;
+      cantidad: number;
+    }
+
+
+    function obtenerCarrito(): ProductoCarrito[] {
+
+      const carritoGuardado =
+        localStorage.getItem('carrito');
+
+      if (!carritoGuardado) {
+        return [];
+      }
+
+      return JSON.parse(carritoGuardado);
+
+    }
+
+
+    function guardarCarrito(
+      carrito: ProductoCarrito[]
+    ) {
+
+      localStorage.setItem(
+        'carrito',
+        JSON.stringify(carrito)
+      );
+
+    }
+
+
+    function mostrarCarrito() {
+
+      const carrito =
+        obtenerCarrito();
+
+
+      const lista =
+        document.getElementById(
+          'lista-productos'
+        );
+
+
+      const carritoElemento =
+        document.getElementById(
+          'carrito'
+        );
+
+
+      const carritoVacio =
+        document.getElementById(
+          'carrito-vacio'
+        );
+
+
+      const contador =
+        document.getElementById(
+          'contador-carrito'
+        );
+
+
+      const subtotalElemento =
+        document.getElementById(
+          'subtotal'
+        );
+
+
+      const totalElemento =
+        document.getElementById(
+          'total'
+        );
+
+
+      if (!lista) {
+        return;
+      }
+
+
+      /* CONTADOR */
+
+      const cantidadTotal =
+        carrito.reduce(
+          (total, producto) =>
+            total + producto.cantidad,
+          0
+        );
+
+
+      if (contador) {
+
+        contador.textContent =
+          String(cantidadTotal);
+
+      }
+
+
+      /* CARRITO VACÍO */
+
+      if (carrito.length === 0) {
+
+        lista.innerHTML = '';
+
+        carritoElemento?.classList.add(
+          'hidden'
+        );
+
+        carritoVacio?.classList.remove(
+          'hidden'
+        );
+
+        return;
+
+      }
+
+
+      /* CARRITO CON PRODUCTOS */
+
+      carritoElemento?.classList.remove(
+        'hidden'
+      );
+
+      carritoVacio?.classList.add(
+        'hidden'
+      );
+
+
+      lista.innerHTML =
+        carrito.map((producto) => `
+
+          <article
+            class="mb-4 flex gap-5 border-2 border-[#102719] bg-white p-5"
+          >
+
+            <div
+              class="flex h-32 w-32 shrink-0 items-center justify-center bg-[#F9C3B6]"
+            >
+
+              <img
+                src="${producto.imagen}"
+                alt="${producto.nombre}"
+                class="h-full w-full object-contain p-3"
+              />
+
+            </div>
+
+
+            <div class="flex flex-1 flex-col">
+
+              <div class="flex justify-between gap-4">
+
+                <h2 class="text-xl font-black uppercase">
+                  ${producto.nombre}
+                </h2>
+
+                <p class="text-xl font-black">
+                  ${producto.precio.toFixed(2)} €
+                </p>
+
+              </div>
+
+
+              <p class="mt-1 text-sm font-bold text-[#102719]/60">
+                Sneaker OFFSTEP
+              </p>
+
+
+              <div
+                class="mt-auto flex items-center justify-between"
+              >
+
+                <div
+                  class="flex items-center border-2 border-[#102719]"
+                >
+
+                  <button
+                    type="button"
+                    class="cantidad-menos px-4 py-2 font-black"
+                    data-id="${producto.id}"
+                  >
+                    −
+                  </button>
+
+
+                  <span class="px-4 font-black">
+                    ${producto.cantidad}
+                  </span>
+
+
+                  <button
+                    type="button"
+                    class="cantidad-mas px-4 py-2 font-black"
+                    data-id="${producto.id}"
+                  >
+                    +
+                  </button>
+
+                </div>
+
+
+                <button
+                  type="button"
+                  class="eliminar font-black text-[#E30613] underline"
+                  data-id="${producto.id}"
+                >
+                  ELIMINAR
+                </button>
+
+              </div>
+
+            </div>
+
+          </article>
+
+        `).join('');
+
+
+      /* PRECIO TOTAL */
+
+      const subtotal =
+        carrito.reduce(
+          (total, producto) =>
+            total +
+            producto.precio *
+            producto.cantidad,
+          0
+        );
+
+
+      if (subtotalElemento) {
+
+        subtotalElemento.textContent =
+          `${subtotal.toFixed(2)} €`;
+
+      }
+
+
+      if (totalElemento) {
+
+        totalElemento.textContent =
+          `${subtotal.toFixed(2)} €`;
+
+      }
+
+
+      /* RESTAR CANTIDAD */
+
+      document
+        .querySelectorAll<HTMLButtonElement>(
+          '.cantidad-menos'
+        )
+        .forEach((boton) => {
+
+          boton.addEventListener(
+            'click',
+            () => {
+
+              const id =
+                Number(
+                  boton.dataset.id
+                );
+
+
+              const carrito =
+                obtenerCarrito();
+
+
+              const producto =
+                carrito.find(
+                  (item) =>
+                    item.id === id
+                );
+
+
+              if (!producto) {
+                return;
+              }
+
+
+              producto.cantidad--;
+
+
+              const nuevoCarrito =
+                carrito.filter(
+                  (item) =>
+                    item.cantidad > 0
+                );
+
+
+              guardarCarrito(
+                nuevoCarrito
+              );
+
+
+              mostrarCarrito();
+
+            }
+          );
+
+        });
+
+
+      /* AUMENTAR CANTIDAD */
+
+      document
+        .querySelectorAll<HTMLButtonElement>(
+          '.cantidad-mas'
+        )
+        .forEach((boton) => {
+
+          boton.addEventListener(
+            'click',
+            () => {
+
+              const id =
+                Number(
+                  boton.dataset.id
+                );
+
+
+              const carrito =
+                obtenerCarrito();
+
+
+              const producto =
+                carrito.find(
+                  (item) =>
+                    item.id === id
+                );
+
+
+              if (!producto) {
+                return;
+              }
+
+
+              producto.cantidad++;
+
+
+              guardarCarrito(
+                carrito
+              );
+
+
+              mostrarCarrito();
+
+            }
+          );
+
+        });
+
+
+      /* ELIMINAR PRODUCTO */
+
+      document
+        .querySelectorAll<HTMLButtonElement>(
+          '.eliminar'
+        )
+        .forEach((boton) => {
+
+          boton.addEventListener(
+            'click',
+            () => {
+
+              const id =
+                Number(
+                  boton.dataset.id
+                );
+
+
+              const carrito =
+                obtenerCarrito();
+
+
+              const nuevoCarrito =
+                carrito.filter(
+                  (producto) =>
+                    producto.id !== id
+                );
+
+
+              guardarCarrito(
+                nuevoCarrito
+              );
+
+
+              mostrarCarrito();
+
+            }
+          );
+
+        });
+
+    }
+
+
+    /* INICIAR */
+
+    mostrarCarrito();
+
+  </script>
+
+
+
+<script>
+  import { supabase } from '../lib/supabase';
+
+  const botonFinalizar = document.getElementById(
+  'btn-finalizar-compra'
+) as HTMLButtonElement | null;
+
+  botonFinalizar?.addEventListener('click', async () => {
+    try {
+      const { data, error } = await supabase.auth.getSession();
+      const session = data.session;
+
+      if (error || !session) {
+        alert('Debes iniciar sesión para realizar la compra.');
+        window.location.href = '/cuenta';
+        return;
+      }
+
+      const carrito = JSON.parse(
+        localStorage.getItem('carrito') || '[]'
+      );
+
+      if (!carrito.length) {
+        alert('Tu carrito está vacío.');
+        return;
+      }
+
+      botonFinalizar.disabled = true;
+      botonFinalizar.textContent = 'CONECTANDO CON STRIPE...';
+
+      const respuesta = await fetch('/api/crear-pago', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + session.access_token
+        },
+        body: JSON.stringify({
+          items: carrito.map((producto: {
+  id: number;
+  cantidad: number;
+}) => ({
+            id: producto.id,
+            cantidad: producto.cantidad
+          }))
+        })
+      });
+
+      if (!respuesta.ok) {
+        throw new Error(await respuesta.text());
+      }
+
+      const resultado = await respuesta.json();
+
+      if (!resultado.url) {
+        throw new Error('Stripe no ha devuelto una URL de pago.');
+      }
+
+      window.location.href = resultado.url;
+
+    } catch (error) {
+
+      alert(
+        error instanceof Error
+          ? error.message
+          : 'No se pudo iniciar el pago.'
+      );
+
+      botonFinalizar.disabled = false;
+      botonFinalizar.textContent = 'FINALIZAR COMPRA';
+    }
+  });
+</script>
+
+
+
+</body>
+
+</html>
